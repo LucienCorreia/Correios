@@ -1,0 +1,17 @@
+{
+    "name": "lucien-correia/correios",
+    "description": "SKD Correios",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lucien Correia",
+            "email": "lucienrc@outlook.com.br"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Correios\\": "src/"
+        }
+    }
+}
