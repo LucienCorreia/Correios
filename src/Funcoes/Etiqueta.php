@@ -11,11 +11,11 @@ use Correios\{
 class Etiqueta extends Correios {
 
     private static $idServico;
-    private $correios;
+    private static $correios;
 
     public function __construct(Correios $correios) {
 
-        $this->correios = $correios;
+        self::$correios = $correios;
     }
 
     public function setIdServico($idServico) : Etiqueta {
@@ -25,7 +25,7 @@ class Etiqueta extends Correios {
     }
 
     public function get() {
-        $client = new Request($this->correios);
+        $client = new Request(self::$correios);
 
         $etiqueta = $client->make('solicitaEtiquetas')
             ->setParametros([
