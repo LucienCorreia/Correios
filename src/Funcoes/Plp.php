@@ -82,8 +82,9 @@ class Plp extends Correios {
         $nacional = array_merge($nacional, $valoresPadroes['nacional']);
         $destinatario = array_merge($destinatario, $valoresPadroes['destinatario']);
 
-        $destinatario['telefone_destinatario'] == '' ?: $this->formatarNumero($destinatario['telefone_destinatario']);
-        $destinatario['celular_destinatario'] == '' ?: $this->formatarNumero($destinatario['celular_destinatario']);
+        $destinatario['telefone_destinatario'] = $this->formatarNumero($destinatario['telefone_destinatario']);
+        $destinatario['celular_destinatario'] = $this->formatarNumero($destinatario['celular_destinatario']);
+        $nacional['cep_destinatario'] = $this->formatarNumero($nacional['cep_destinatario']);
 
         $this->xml->adicionarElementosEm('objeto_postal', $objeto, true, true)
             ->adicionarElementoDepoisDe('objeto_postal.data_postagem_sara', 'destinatario')

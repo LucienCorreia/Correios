@@ -102,7 +102,7 @@ class Xml extends Correios {
 
     public function validarXml() : bool {
 
-        return $this->xml->schemaValidate('../extra/validacao.xsd');
+        return $this->xml->schemaValidate(__DIR__.'/../extra/validacao.xsd');
     }
 
     public function getXml() {
