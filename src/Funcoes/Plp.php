@@ -11,7 +11,10 @@ use Correios\{
 class Plp extends Correios {
 
     private static $correios;
-    private static $etiqueta;
+    private static $etiquetas;
+    private static $countObjetos = 0;
+    private static $etiquetasCodigo;
+    private static $idPlp;
     private $xml;
 
     public function __construct(Correios $correios) {
@@ -31,7 +34,7 @@ class Plp extends Correios {
             'codigo_administrativo' => parent::$codigoAdmin,
         ];
 
-        $remetente = array_merge($remetente, $valoresPadroes);
+        $remetente = array_merge($valoresPadroes, $remetente);
 
         $this->xml->adicionarElementosEm('remetente', $remetente);
 
@@ -47,28 +50,52 @@ class Plp extends Correios {
         //valores obrigatórios vazios
         $valoresPadroes = [
             'objeto' => [
+                'numero_etiqueta' => self::$etiquetasCodigo[self::$countObjetos],
                 'codigo_objeto_cliente' => '',
+                'cubagem' => '0,00',
+                'rt1' => '',
+                'rt2' => '',
                 'data_postagem_sara' => '',
+                'status_processamento' => '0',
                 'numero_comprovante_postagem' => '',
                 'valor_cobrado' => '',
-                'rt1' => '',
-                'rt2' => ''
+            ],
+            'destinatario' => [
+
             ],
             'nacional' => [
-                'naturaza_nota_fiscal' => ''
+                'codigo_usuario_postal' => '',
+                'centro_custo_cliente' => '',
+                'numero_nota_fiscal' => '',
+                'serie_nota_fiscal' => '',
+                'valor_nota_fiscal' => '',
+                'natureza_nota_fiscal' => '',
+                'descricao_objeto' => '',
+                'valor_a_cobrar' => ''
+            ],
+            'servico' => [
+                'valor_declarado' => ''
             ]
         ];
 
         $objeto = array_merge($objeto, $valoresPadroes['objeto']);
         $nacional = array_merge($nacional, $valoresPadroes['nacional']);
+        $destinatario = array_merge($destinatario, $valoresPadroes['destinatario']);
 
-        //print_r($objeto);
+        $destinatario['telefone_destinatario'] == '' ?: $this->formatarNumero($destinatario['telefone_destinatario']);
+        $destinatario['celular_destinatario'] == '' ?: $this->formatarNumero($destinatario['celular_destinatario']);
 
-        $this->xml->adicionarElementosEm('objeto_postal', $objeto)
-            ->adicionarElementosEm('objeto_postal.destinatario', $destinatario)
-            ->adicionarElementosEm('objeto_postal.nacional', $nacional)
-            ->adicionarElementosEm('objeto_postal.servico_adicional', $servico)
-            ->adicionarElementosEm('objeto_postal.dimensao_objeto', $dimensao);
+        $this->xml->adicionarElementosEm('objeto_postal', $objeto, true, true)
+            ->adicionarElementoDepoisDe('objeto_postal.data_postagem_sara', 'destinatario')
+            ->adicionarElementoDepoisDe('objeto_postal.data_postagem_sara', 'nacional')
+            ->adicionarElementoDepoisDe('objeto_postal.data_postagem_sara', 'servico_adicional')
+            ->adicionarElementoDepoisDe('objeto_postal.data_postagem_sara', 'dimensao_objeto')
+            ->adicionarElementosEm('objeto_postal.destinatario', $destinatario, false)
+            ->adicionarElementosEm('objeto_postal.nacional', $nacional, false)
+            ->adicionarElementosEm('objeto_postal.servico_adicional', $servico, false)
+            ->adicionarElementosEm('objeto_postal.dimensao_objeto', $dimensao, false);
+
+        self::$countObjetos++;
 
         return $this;
     }
@@ -80,27 +107,48 @@ class Plp extends Correios {
         return $this;
     }
 
-    public function setEtiqueta(string $etiqueta) : Plp {
+    public function setEtiquetas($idServico, int $qntEtiquetas = 1) : Plp {
 
-        $etiqueta1 = substr($etiqueta, 0, 9);
-        $etiqueta2 = substr($etiqueta, 10, 12);
-        $etiqueta = $etiqueta1 . $etiqueta2; 
+        $etiquetas = self::$correios->factory('Etiqueta')
+            ->setIdServico($idServico)
+            ->get($qntEtiquetas);
 
-        self::$etiqueta = $etiqueta;
+        self::$etiquetasCodigo = $etiquetas;
+
+        foreach($etiquetas as $k => $v) {
+            $etiqueta1 = substr($v, 0, 10);
+            $etiqueta2 = substr($v, 11, 13);
+            $etiquetas[$k] = $etiqueta1 . $etiqueta2; 
+        }        
+
+        self::$etiquetas = $etiquetas;
 
         return $this;
     }
 
     public function get() {
 
+        if(!$this->xml->validarXml()) {
+            throw new \Exception('Xml Inválido!');
+        }
+
         $cliente = new Request(self::$correios);
 
-        $xml = $cliente->make('fechaPlpVariosServicos')
+        $codigo = $cliente->make('fechaPlpVariosServicos')
         ->setParametros([
             'xml' => $this->getXml(),
             'idPlpCliente' => '102030',
             'cartaoPostagem' => parent::$cartao,
-            'listaEtiquetas' => self::$etiqueta,
+            'listaEtiquetas' => self::$etiquetas,
+            'usuario' => parent::$usuario,
+            'senha' => parent::$senha
+        ])->getResposta(function($codigo) {
+            return $codigo;
+        });
+
+        $xml = $cliente->make('solicitaXmlPlp')
+        ->setParametros([
+            'idPlpMaster' => $codigo,
             'usuario' => parent::$usuario,
             'senha' => parent::$senha
         ])->getResposta(function($xml) {
@@ -110,12 +158,12 @@ class Plp extends Correios {
         return $xml;
     }
 
-    public function getXml() {
+    public function getXml() : string {
 
-        return $this->xml->getXml();
+        return  $this->xml->getXml();
     }
 
-    private function formatarNumero($numero) {
+    private function formatarNumero($numero) : string {
         
         return preg_replace('([^\d]+)', '', $numero);
     }
