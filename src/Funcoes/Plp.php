@@ -146,16 +146,7 @@ class Plp extends Correios {
             return $codigo;
         });
 
-        $xml = $cliente->make('solicitaXmlPlp')
-        ->setParametros([
-            'idPlpMaster' => $codigo,
-            'usuario' => parent::$usuario,
-            'senha' => parent::$senha
-        ])->getResposta(function($xml) {
-            return $xml;
-        });
-
-        return $xml;
+        return $codigo;
     }
 
     public function getXml() : string {
