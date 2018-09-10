@@ -16,42 +16,51 @@ $correios = new Correios([
     'cnpj' => '34028316000103'
 ]);
 
-$etiqueta = $correios->factory('Etiqueta')
-    ->setIdServico('124849')
-    ->get();
-
-echo($etiqueta);
-
 $plp = $correios->factory('Plp');
 
 $result = $plp->setRemetente([
+        'nome_remetente' => 'Lucien Risso Correia',
+        'logradouro_remetente' => 'Paulo Klitkze',
+        'numero_remetente' => '474',
+        'complemento_remetente' => '',
+        'bairro_remetente' => 'Amizade',
         'cep_remetente' => '89255-750',
-        'telefone_remetente' => '(47) 09929-7387'
+        'cidade_remetente' => 'Jaraguá do Sul',
+        'uf_remetente' => 'SC',
+        'telefone_remetente' => '(47) 99629-7387',
+        'fax_remetente' => '',
+        'email_remetente' => ''
     ])
     ->setFormaDePagamento(1)
-    ->setEtiqueta($etiqueta)
+    ->setEtiquetas(124849, 2)
     ->setObjetoPostal([
-        'numero_etiqueta' => $etiqueta,
+        'numero_etiqueta' => '',
+        'codigo_objeto_cliente' => '',
+        'codigo_servico_postagem' => '04162',
         'cubagem' => '0.00',
         'peso' => '300',
-        'status_processamento' => '0'
+        'rt1' => '',
+        'rt2' => '',
     ], [
         'nome_destinatario' => 'Lucien Correia',
-        'telefone_destinatario' => '47099297387',
-        'celular_destinatario' => '47099297387',
+        'telefone_destinatario' => '',
+        'celular_destinatario' => '47996297387',
         'email_destinatario' => 'lucien@wadvice.com.br',
         'logradouro_destinatario' => 'Barão Rio Branco',
-        'numero_end_destinatario' => '818'
+        'complemento_destinatario' => '',
+        'numero_end_destinatario' => '818',
     ], [
-        'bairro_destinatario' => 'centro',
+        'bairro_destinatario' => 'Centro',
         'cidade_destinatario' => 'Jaraguá do Sul',
         'uf_destinatario' => 'SC',
-        'codigo_usuario_cliente' => '',
+        'cep_destinatario' => '89255750',
+        'codigo_usuario_postal' => '',
         'centro_custo_cliente' => '',
         'numero_nota_fiscal' => '',
         'serie_nota_fiscal' => '',
         'valor_nota_fiscal' => '',
         'natureza_nota_fiscal' => '',
+        'descricao_objeto' => '',
         'valor_a_cobrar' => ''
     ], [
         'codigo_servico_adicional' => '025',
@@ -59,12 +68,51 @@ $result = $plp->setRemetente([
     ], [
         'tipo_objeto' => '002',
         'dimensao_altura' => '10',
-        'dimensao_largura' => '10',
-        'dimensao_comprimento' => '10',
+        'dimensao_largura' => '11',
+        'dimensao_comprimento' => '16',
+        'dimensao_diametro' => '0'
+    ])
+    ->setObjetoPostal([
+        'numero_etiqueta' => '',
+        'codigo_objeto_cliente' => '',
+        'codigo_servico_postagem' => '04162',
+        'cubagem' => '0.00',
+        'peso' => '300',
+        'rt1' => '',
+        'rt2' => '',
+    ], [
+        'nome_destinatario' => 'Lucien Correia',
+        'telefone_destinatario' => '',
+        'celular_destinatario' => '47996297387',
+        'email_destinatario' => 'lucien@wadvice.com.br',
+        'logradouro_destinatario' => 'Barão Rio Branco',
+        'complemento_destinatario' => '',
+        'numero_end_destinatario' => '818',
+    ], [
+        'bairro_destinatario' => 'Centro',
+        'cidade_destinatario' => 'Jaraguá do Sul',
+        'uf_destinatario' => 'SC',
+        'cep_destinatario' => '89255750',
+        'codigo_usuario_postal' => '',
+        'centro_custo_cliente' => '',
+        'numero_nota_fiscal' => '',
+        'serie_nota_fiscal' => '',
+        'valor_nota_fiscal' => '',
+        'natureza_nota_fiscal' => '',
+        'descricao_objeto' => '',
+        'valor_a_cobrar' => ''
+    ], [
+        'codigo_servico_adicional' => '025',
+        'valor_declarado' => ''
+    ], [
+        'tipo_objeto' => '002',
+        'dimensao_altura' => '10',
+        'dimensao_largura' => '11',
+        'dimensao_comprimento' => '16',
         'dimensao_diametro' => '0'
     ])
     ->get();
 
-    header("Content-type: text/xml");
+    header('Content-type: text/xml');
 
     echo html_entity_decode($result);
