@@ -24,42 +24,76 @@ class Etiqueta extends Correios {
         return $this;
     }
 
-    public function get() {
+    public function get(int $qntEtiquetas) : array {
         $client = new Request(self::$correios);
 
-        $etiqueta = $client->make('solicitaEtiquetas')
+        $etiquetas = $client->make('solicitaEtiquetas')
             ->setParametros([
                 'tipoDestinatario' => 'C',
                 'identificador' => parent::$cnpj,
                 'idServico' => self::$idServico,
-                'qtdEtiquetas' => '1',
+                'qtdEtiquetas' => $qntEtiquetas,
                 'usuario' => parent::$usuario,
                 'senha' => parent::$senha
-            ])->getResposta(function($etiqueta) {
-                return $this->formatarResposta($etiqueta);
+            ])->getResposta(function($etiquetas) {
+                return $this->formatarResposta($etiquetas);
             });
+
+        $etiquetas = $this->recontarEtiquetas($qntEtiquetas, $etiquetas);
 
         $resposta = $client->make('geraDigitoVerificadorEtiquetas')
             ->setParametros([
-                'etiquetas' => $etiqueta,
+                'etiquetas' => $etiquetas,
                 'usuario' => parent::$usuario,
                 'senha' => parent::$senha
-            ])->getResposta(function($codigo) use($etiqueta) {
-                return $this->inserirCodigoVerificador($etiqueta, $codigo);
+            ])->getResposta(function($codigos) use($etiquetas) {
+                return $this->inserirCodigoVerificador($etiquetas, $codigos);
             });
 
         return $resposta;
     }
 
-    private function formatarResposta(string $resposta) : string {
+    private function formatarResposta(string $resposta) : array {
 
         $range = explode(',', $resposta);
 
-        return $range[0];
+        $min = preg_replace('([^\d]+)', '', $range[0]);
+        $max = preg_replace('([^\d]+)', '', $range[1]);
+
+        $novasEtiquetas = [];
+
+        for($i = $min; $i <= $max; $i++) {
+            $novasEtiquetas[] = str_replace($min, $i, $range[0]);
+        }
+
+        return $novasEtiquetas;
     }
 
-    public function inserirCodigoVerificador(string $etiqueta, int $codigo) : string {
+    public function inserirCodigoVerificador(array $etiquetas, $codigos) : array {
         
-        return str_replace(' ', $codigo, $etiqueta);
+        foreach($etiquetas as $k => $v) {
+            if(is_array($codigos)) {
+                $etiquetas[$k] = str_replace(' ', $codigos[$k], $v);
+            } else {
+                $etiquetas[$k] = str_replace(' ', $codigos, $v);
+            }
+        }
+
+        return $etiquetas;
+    }
+
+    private function recontarEtiquetas(int $qntEtiquetas, array $etiquetas) : array {
+
+        if(count($etiquetas) != $qntEtiquetas) {
+            $recontagem = [];
+
+            for($i = 0; $i < $qntEtiquetas; $i++) {
+                $recontagem[] = $etiquetas[$i];
+            }
+
+            return $recontagem;
+        } else {
+            return $etiquetas;
+        }
     }
 }
