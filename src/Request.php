@@ -30,9 +30,9 @@ class Request extends Correios {
         return $this;
     }
 
-    public function getResposta($formatarReposta) {
-        $funcao = $this->funcao;
+    public function getResposta(callable $formatarReposta) {
 
+        $funcao = $this->funcao;
         $resposta = $this->soap->$funcao($this->parametros);
 
         return $formatarReposta($resposta->return);
