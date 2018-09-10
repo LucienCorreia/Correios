@@ -3,7 +3,10 @@
 namespace Correios;
 
 use DOMDocument;
-use Correios\Correios;
+use Correios\{
+    Correios,
+    Request
+};
 
 class Xml extends Correios {
 
@@ -14,19 +17,21 @@ class Xml extends Correios {
 
     public function __construct(Correios $correios) {
 
-        $this->xml = new DOMDocument('1.0', 'ISO-8859-1');
+        $this->xml = new DOMDocument('1.0', 'UTF-8');
         $this->root = $this->xml->createElement('correioslog');
         $this->xml->appendChild($this->root);
 
+        $plp = [
+            'id_plp' => '',
+            'valor_global' => '',
+            'mcu_unidade_postagem' => '',
+            'nome_unidade_postagem' => '',
+            'cartao_postagem' => parent::$cartao
+        ];
+
         $this->adicionarElemento('tipo_arquivo', 'Postagem')
             ->adicionarElemento('versao_arquivo', '2.3')
-            ->adicionarElementosEm('plp', [
-                'id_plp' => '',
-                'valor_global' => '',
-                'mcu_unidade_postagem' => '',
-                'nome_unidade_postagem' => '',
-                'cartao_postagem' => parent::$cartao
-            ]);
+            ->adicionarElementosEm('plp', $plp);
     }
 
     public function adicionarElemento(string $elemento, $valor = '') : Xml {
@@ -38,19 +43,37 @@ class Xml extends Correios {
         return $this;
     }
 
-    public function adicionarElementosEm(string $elemento, array $elementos) : Xml {
+    public function adicionarElementosEm(string $elemento, array $elementos, bool $criarElementoPai = true, bool $elementoParalelo = false) : Xml {
         
         $elementoPai = $this->getElemento($elemento);
         $elemento = $this->getNomeElemento($elemento);
         
-        $this->elemento = $this->xml->createElement($elemento);
-        $elementoPai->appendChild($this->elemento);
+        if($criarElementoPai) {
+            $this->elemento = $this->xml->createElement($elemento);
+            
+            if($elementoParalelo) {
+                $this->root->appendChild($this->elemento);
+            } else {
+                $elementoPai->appendChild($this->elemento);
+            }
+        } else {
+            $this->elemento = $elementoPai;
+        }
+        
         $this->elementos[$elemento] = [];
-
         foreach($elementos as $k => $v) {
             $elementoFilho = $this->xml->createElement($k, $v);
             $this->elementos[$elemento][$k] = $this->elemento->appendChild($elementoFilho);
         }
+
+        return $this;
+    }
+
+    public function adicionarElementoDepoisDe(string $elementoReferencia, string $elementoNovo)  : Xml{
+
+        $elementoReferencia = $this->getElemento($elementoReferencia);
+        $elementoNovo = $this->xml->createElement($elementoNovo);
+        $this->elemento->insertBefore($elementoNovo, $elementoReferencia);
 
         return $this;
     }
@@ -60,13 +83,11 @@ class Xml extends Correios {
         $elementos = explode('.', $elemento);
 
         $elementoAtual = $this->root;
+        
+        $check = $elementoAtual->getElementsByTagName($elementos[count($elementos) - 1]);
 
-        foreach($elementos as $k => $v) {
-            $check = $elementoAtual->getElementsByTagName($v);
-            
-            if(count($check) == 1) {
-                $elementoAtual = $check[0];
-            }
+        if($check->length > 0) {
+            $elementoAtual = $check[count($check) - 1];
         }
 
         return $elementoAtual;
@@ -79,8 +100,13 @@ class Xml extends Correios {
         return end($elementos);
     }
 
+    public function validarXml() : bool {
+
+        return $this->xml->schemaValidate('../extra/validacao.xsd');
+    }
+
     public function getXml() {
         
-        return $this->xml->saveHTML();
+        return $this->xml->saveXML();
     }
 }
