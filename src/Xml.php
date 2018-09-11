@@ -69,7 +69,7 @@ class Xml extends Correios {
         return $this;
     }
 
-    public function adicionarElementoDepoisDe(string $elementoReferencia, string $elementoNovo)  : Xml{
+    public function adicionarElementoDepoisDe(string $elementoReferencia, string $elementoNovo) : Xml {
 
         $elementoReferencia = $this->getElemento($elementoReferencia);
         $elementoNovo = $this->xml->createElement($elementoNovo);

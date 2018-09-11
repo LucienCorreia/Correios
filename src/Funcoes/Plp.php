@@ -150,6 +150,11 @@ class Plp extends Correios {
         return $codigo;
     }
 
+    public function getEtiqueta() : string {
+
+        return self::$etiquetasCodigo[0];
+    }
+
     public function getXml() : string {
 
         return  $this->xml->getXml();
