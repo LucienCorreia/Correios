@@ -13,10 +13,10 @@ $correios = new Correios([
     'cnpj' => '34028316000103'
 ]);
 
-$etiqueta = $correios->factory('Etiqueta')->setIdServico('124849')->get();
+$etiqueta = $correios->factory('Etiqueta')->setIdServico('124849')->get(1);
 
 if($etiqueta){
-    print($etiqueta);
+    var_dump($etiqueta);
 } else {
     throw new \Exception('Erro');
 }

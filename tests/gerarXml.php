@@ -18,9 +18,4 @@ $correios = new Correios([
 
 $xml = new Xml($correios);
 
-$xml->setRemetente([
-    'cep_remetente' => '89255-750',
-    'telefone_remetente' => '(47) 9929-7387'
-])
-->setFormaDePagamento(1)
-->getXml();
+var_dump($xml->getXml());
